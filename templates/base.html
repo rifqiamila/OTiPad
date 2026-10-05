@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}OTiPad - One Time Pad Program{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Sora:wght@400&family=Zalando+Sans:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <span class="logo"></span>
+    <span class="tagline"></span>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="bottom" aria-hidden="true"></footer>
+</div>
+
+{# urutan penting: modul dulu, main.js terakhir #}
+<script src="{{ url_for('static', filename='js/key_mode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/text_mode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/file_mode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

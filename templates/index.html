@@ -1,178 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>OTP smoke test</title>
-  <style>
-    body { font-family: system-ui; max-width: 720px; margin: 24px auto; }
-    section { border: 1px solid #ccc; padding: 12px; margin: 12px 0;
-              border-radius: 6px; }
-    textarea, input { width: 100%; box-sizing: border-box; font-family: monospace; }
-    pre { background: #f5f5f5; padding: 8px; overflow-x: auto; }
-    button { padding: 6px 12px; margin-top: 6px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <h1>OTP smoke test</h1>
+{% extends 'base.html' %}
 
-  <!-- Health -->
-  <section>
-    <h2>1. Health</h2>
-    <button onclick="checkHealth()">GET /api/health</button>
-  </section>
+{% block content %}
+<section class="hero">
+  <h1>Encrypt &amp; Decrypt,<br>One More Time with Us!</h1>
+  <p class="credit">Created by Group 5 - Cryptography</p>
+  {% include 'partials/_tabs.html' %}
+  <img class="maskot maskot-hero" src="{{ url_for('static', filename='img/maskot.png') }}" alt="Maskot OTiPad">
+</section>
 
-  <!-- Encrypt text -->
-  <section>
-    <h2>2. Encrypt text (template key)</h2>
-    <textarea id="pt" rows="2">Hello World</textarea>
-    <button onclick="encText()">POST /api/encrypt/text</button>
-  </section>
+<form id="otp-form" novalidate>
+  {% include 'partials/_input_panel.html' %}
+  {% include 'partials/_key_panel.html' %}
+  <button type="submit" class="btn btn-submit" id="btn-submit"></button>
+</form>
 
-  <!-- Decrypt text -->
-  <section>
-    <h2>3. Decrypt text</h2>
-    <textarea id="ct" rows="2" placeholder="paste ciphertext"></textarea>
-    <button onclick="decText()">POST /api/decrypt/text</button>
-  </section>
+<p id="error" class="error" role="alert" hidden></p>
 
-  <!-- Short key -->
-  <section>
-    <h2>4. Short key</h2>
-    <textarea id="shortPt" rows="1">HELLOWORLD</textarea>
-    <input id="shortKey" value="XMCKL">
-    <button onclick="shortKeyTest()">POST (should say SHORT_KEY)</button>
-  </section>
-
-  <!-- Encrypt file -->
-  <section>
-    <h2>5. Encrypt file</h2>
-    <input type="file" id="fileIn">
-    <button onclick="encFile()">POST /api/encrypt/file</button>
-  </section>
-
-  <!-- Decrypt file -->
-  <section>
-    <h2>6. Decrypt file</h2>
-    <input type="file" id="fileIn2" accept=".dat">
-    <button onclick="decFile()">POST /api/decrypt/file</button>
-  </section>
-
-  <!-- Generate key -->
-  <section>
-    <h2>7. Generate key</h2>
-    <input id="keyLen" type="number" value="100000">
-    <button onclick="genKey()">POST /api/key/generate</button>
-  </section>
-
-  <pre id="out">(output appears here)</pre>
-
-  <script>
-    const out = document.getElementById('out');
-    function show(label, data) {
-      out.textContent = label + '\n\n' + JSON.stringify(data, null, 2);
-    }
-
-    async function postJSON(url, body) {
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-      });
-      return { status: r.status, body: await r.json() };
-    }
-
-    // --- Parse the server-provided filename out of Content-Disposition ---
-    // Handles both:
-    //   Content-Disposition: attachment; filename="photo_enc.dat"
-    //   Content-Disposition: attachment; filename*=UTF-8''photo%20enc.dat
-    function filenameFromHeader(resp, fallback) {
-      const cd = resp.headers.get('Content-Disposition') || '';
-      // Prefer RFC 5987 (filename*=) if present
-      let m = cd.match(/filename\*=UTF-8''([^;]+)/i);
-      if (m) {
-        try { return decodeURIComponent(m[1]); } catch (_) {}
-      }
-      m = cd.match(/filename="?([^";]+)"?/i);
-      if (m) return m[1];
-      return fallback;
-    }
-
-    // --- Generic download helper ---
-    async function downloadResponse(resp, fallbackName, label) {
-      if (resp.headers.get('Content-Type')?.includes('json')) {
-        show(label + ' error', {status: resp.status, body: await resp.json()});
-        return;
-      }
-      const realName = filenameFromHeader(resp, fallbackName);
-      const blob = await resp.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url;
-      a.download = realName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      show(label, {status: resp.status, downloaded: realName});
-    }
-
-    async function checkHealth() {
-      const r = await fetch('/api/health');
-      show('health', await r.json());
-    }
-
-    async function encText() {
-      const r = await postJSON('/api/encrypt/text', {
-        plaintext: document.getElementById('pt').value,
-        key_type: 'template'
-      });
-      show('encrypt text', r);
-      if (r.body.ciphertext) document.getElementById('ct').value = r.body.ciphertext;
-    }
-
-    async function decText() {
-      const r = await postJSON('/api/decrypt/text', {
-        ciphertext: document.getElementById('ct').value,
-        key_type: 'template'
-      });
-      show('decrypt text', r);
-    }
-
-    async function shortKeyTest() {
-      const r = await postJSON('/api/encrypt/text', {
-        plaintext: document.getElementById('shortPt').value,
-        key_type: 'text',
-        key_value: document.getElementById('shortKey').value
-      });
-      show('short key', r);
-    }
-
-    async function encFile() {
-      const file = document.getElementById('fileIn').files[0];
-      if (!file) return show('encrypt file', {error: 'pick a file first'});
-      const fd = new FormData();
-      fd.append('key_type', 'template');
-      fd.append('file', file);
-      const r = await fetch('/api/encrypt/file', {method: 'POST', body: fd});
-      await downloadResponse(r, file.name + '_enc.dat', 'encrypt file');
-    }
-
-    async function decFile() {
-      const file = document.getElementById('fileIn2').files[0];
-      if (!file) return show('decrypt file', {error: 'pick a file first'});
-      const fd = new FormData();
-      fd.append('key_type', 'template');
-      fd.append('file', file);
-      const r = await fetch('/api/decrypt/file', {method: 'POST', body: fd});
-      await downloadResponse(r, file.name.replace(/_enc\.dat$/, '_dec.bin'), 'decrypt file');
-    }
-
-    async function genKey() {
-      const r = await postJSON('/api/key/generate', {
-        length: parseInt(document.getElementById('keyLen').value, 10)
-      });
-      show('generate key', r);
-    }
-  </script>
-</body>
-</html>
+{% include 'partials/_result_panel.html' %}
+{% endblock %}
