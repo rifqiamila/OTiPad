@@ -77,7 +77,12 @@ form{
   min-height:clamp(13rem,30vw,18rem); padding:1rem clamp(1rem,3vw,1.7rem) 1.5rem;
   background:url('../img/box_pink.png') center/100% 100% no-repeat;
 }
-.box-label{font-family:var(--f-body); font-size:var(--fs-body); margin-bottom:.4rem}
+.box-label{font-family:var(--f-body); font-size:var(--fs-body); margin:0}
+.box-head{display:flex; justify-content:space-between; align-items:center; gap:.8rem; margin-bottom:.4rem}
+.txt-pick{font-family:var(--f-mono); font-size:var(--fs-mono); color:var(--teal); text-decoration:underline; cursor:pointer; white-space:nowrap}
+.txt-pick:focus-within{outline:3px solid var(--teal); outline-offset:2px}
+.box.over{filter:brightness(1.05)}
+.box textarea::placeholder{color:#8a6a7a}
 .box textarea{
   flex:1; width:100%; min-height:9rem; resize:none; border:0; background:transparent;
   font-family:var(--f-body); font-size:var(--fs-body); color:var(--ink);

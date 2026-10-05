@@ -18,7 +18,6 @@
 
   O.file = {
     get: () => input.files[0],
-    setAccept: (accept) => { input.accept = accept; },
     async run(mode, file, k) {
       const fd = new FormData();
       fd.append('file', file);

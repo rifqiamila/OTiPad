@@ -17,4 +17,24 @@
       return { ok: true, display: out, text: out, blob: null, filename: `${mode}ed.txt` };
     },
   };
+
+  // Isi textarea dari file .txt (tombol "Pilih .txt" atau drag & drop ke kotak)
+  O.attachTxt = (box) => {
+    const ta = box.querySelector('textarea');
+    const pick = box.querySelector('.txt-file');
+    const load = async (f) => {
+      if (!f) return;
+      if (!/\.txt$/i.test(f.name) && f.type !== 'text/plain') {
+        return O.showError('Hanya file .txt yang bisa dimuat ke kotak ini.');
+      }
+      O.showError('');
+      ta.value = await f.text();
+    };
+    pick.addEventListener('change', async () => { await load(pick.files[0]); pick.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) =>
+      box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((ev) =>
+      box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.remove('over'); }));
+    box.addEventListener('drop', (e) => load(e.dataTransfer.files[0]));
+  };
 })();

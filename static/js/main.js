@@ -16,6 +16,7 @@
   /* ---------- helper bersama ---------- */
   O.errMsg = (d) => d.message || d.reason || d.error || 'Terjadi kesalahan.';
   const showError = (m) => { el.error.textContent = m; el.error.hidden = !m; };
+  O.showError = showError;
   const save = (blob, name) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = name; a.click();
@@ -37,7 +38,6 @@
     el.boxText.hidden = isFile;
     el.boxFile.hidden = !isFile;
     el.boxText.querySelector('.box-label').textContent = isDecrypt ? 'Input Ciphertext' : 'Input Text';
-    O.file.setAccept(isDecrypt ? '.txt,.dat' : '.txt');
 
     // Auto Generate hanya untuk Encrypt
     el.key.querySelector('option[value="auto"]').disabled = isDecrypt;
@@ -46,6 +46,9 @@
   }
   [el.input, el.mode, el.key].forEach((s) => s.addEventListener('change', syncUI));
   syncUI();
+
+  O.attachTxt(el.boxText);
+  O.attachTxt(el.boxKey);
 
   /* ---------- submit ---------- */
   el.form.addEventListener('submit', async (e) => {
