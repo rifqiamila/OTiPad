@@ -1,0 +1,1 @@
+"""routes — HTTP blueprints. Thin wrappers around services/."""

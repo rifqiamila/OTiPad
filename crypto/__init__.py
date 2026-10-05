@@ -1,0 +1,1 @@
+"""crypto — pure OTP logic, no Flask dependencies."""

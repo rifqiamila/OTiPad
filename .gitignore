@@ -1,7 +1,57 @@
+# ------------------------------------------------------------
+# Python
+# ------------------------------------------------------------
 venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ------------------------------------------------------------
+# Environment / secrets
+# ------------------------------------------------------------
 .env
+.env.*
+*.local
+
+# ------------------------------------------------------------
+# Editors / OS
+# ------------------------------------------------------------
 .vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------------------------------------------
+# Project runtime artifacts
+# ------------------------------------------------------------
+# OTP key material — never commit these
 key.txt
+key_template.txt
+keys/key_template.txt
+keys/generated_*.txt
+
+# Generated ciphertext / plaintext outputs
 *.dat
+encrypt_result.txt
+decrypt_result.txt
+
+# Runtime storage folders (keep the folders, ignore the contents)
+storage/uploads/*
+storage/outputs/*
+!storage/uploads/.gitkeep
+!storage/outputs/.gitkeep
+
+# Flask instance folder (created automatically in some setups)
+instance/
+
+# ------------------------------------------------------------
+# Smoke test / check scripts (optional — remove if you want them tracked)
+# ------------------------------------------------------------
+# check_step1.py
+# check_step2.py
+# check_step3.py
