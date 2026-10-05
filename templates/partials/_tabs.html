@@ -1,13 +1,16 @@
 <div class="controls">
-  <select id="sel-input" aria-label="Jenis input">
+  <select id="sel-input" aria-label="Jenis input" required>
+    <option value="" disabled selected hidden>Choose Input</option>
     <option value="text">Text</option>
     <option value="file">File</option>
   </select>
-  <select id="sel-mode" aria-label="Mode">
+  <select id="sel-mode" aria-label="Mode" required>
+    <option value="" disabled selected hidden>Encrypt/Decrypt?</option>
     <option value="encrypt">Encrypt</option>
     <option value="decrypt">Decrypt</option>
   </select>
-  <select id="sel-key" aria-label="Jenis key">
+  <select id="sel-key" aria-label="Jenis key" required>
+    <option value="" disabled selected hidden>Key Option</option>
     <option value="manual">Manual Input</option>
     <option value="auto">Auto Generate</option>
     <option value="default">Default</option>

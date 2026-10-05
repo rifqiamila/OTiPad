@@ -18,6 +18,9 @@
 
   --gutter:clamp(1rem, 4vw, 2.5rem);
   --wrap:min(100% - 2*var(--gutter), 1040px);
+
+  --hdr-ratio:9.6;   /* lebar ÷ tinggi header_kuning.png */
+  --ftr-ratio:9.6;   /* lebar ÷ tinggi footer_ungu.png */
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -36,8 +39,11 @@ img{max-width:100%}
 
 /* ---------- header (full-bleed) ---------- */
 .top{
-  background:url('../img/header_kuning.png') center bottom/100% 100% no-repeat;
-  padding:1rem max(var(--gutter), calc((100% - 1040px)/2)) clamp(2.2rem,5vw,3.6rem);
+  min-height:calc(100vw / var(--hdr-ratio));
+  background:
+    url('../img/header_kuning.png') center bottom/100% auto no-repeat,
+    linear-gradient(var(--yellow),var(--yellow)) top/100% calc(100% - (100vw / var(--hdr-ratio)) * .45) no-repeat;
+  padding:1rem max(var(--gutter), calc((100% - 1040px)/2)) calc(100vw / var(--hdr-ratio) * .3);
   display:flex; justify-content:space-between; align-items:center; gap:1rem;
 }
 .logo{font-family:var(--f-title); font-weight:700; font-size:clamp(1.4rem,1rem + 1.8vw,2.2rem); color:var(--pink)}
@@ -53,11 +59,16 @@ h1{
 }
 .credit{font-family:var(--f-mono); font-weight:500; font-size:var(--fs-mono); margin:.3rem 0 1rem}
 .controls{display:flex; flex-direction:column; gap:.65rem; align-items:center}
+
+/* dropdown pill: Choose Input / Encrypt/Decrypt? / Key Option */
 select{
   appearance:none; -webkit-appearance:none; cursor:pointer;
-  width:clamp(11rem,28vw,17rem); height:clamp(2.6rem,1.9rem + 1.6vw,3.2rem);
-  padding:0 2.4rem 0 1.1rem; border:0; border-radius:999px;
-  background:url('../img/button_hijau.png') center/100% 100% no-repeat;
+  width:clamp(13rem,30vw,19rem); height:clamp(2.6rem,1.9rem + 1.6vw,3.2rem);
+  padding:0 2.6rem 0 1.4rem; border:0; border-radius:999px;
+  /* Lapisan 1: panah "v" teal. Hapus lapisan ini jika button_hijau.png sudah berisi panah. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 8l7 8 7-8' fill='none' stroke='%23069494' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 1.1rem center/1rem no-repeat,
+    url('../img/button_hijau.png') center/100% 100% no-repeat;
   font-family:var(--f-body); font-size:var(--fs-body); color:var(--ink);
 }
 select:focus-visible,.btn:focus-visible,textarea:focus-visible,.dropzone:focus-within{
@@ -110,6 +121,15 @@ form{
 #btn-share{background-image:url('../img/button_share.png')}
 #btn-copy-result,#btn-copy-key{background-image:url('../img/button_copy.png')}
 .btn:disabled{opacity:.6; cursor:progress}
+.btn{position:relative}
+.btn.copied::after{
+  content:'Copied!';
+  position:absolute; left:100%; top:50%; transform:translateY(-50%);
+  margin-left:.6rem; padding:.25rem .7rem;
+  background:var(--teal); color:#fff; border-radius:999px;
+  font-family:var(--f-mono); font-size:.8rem; white-space:nowrap;
+  pointer-events:none;
+}
 
 .error{
   max-width:760px; margin:1.4rem auto 0; padding:.7rem 1rem;
@@ -117,7 +137,7 @@ form{
 }
 
 /* ---------- result ---------- */
-.result{position:relative; margin:clamp(1.5rem,4vw,3rem) auto 0; max-width:820px}
+.result{position:relative; margin:clamp(1.5rem,4vw,3rem) auto 0; max-width:820px; padding-bottom:clamp(3rem,7vw,5rem)}
 h2{
   font-family:var(--f-title); font-weight:700; color:var(--teal);
   font-size:var(--fs-title); margin:0 0 .6rem; line-height:1.15;
@@ -130,17 +150,20 @@ h2{
 }
 .bubble-1 textarea{background:url('../img/box_kuning1.png') center/100% 100% no-repeat}
 .bubble-2 textarea{background:url('../img/box_kuning2.png') center/100% 100% no-repeat}
-.side-btns{display:flex; flex-direction:column; gap:.6rem}
+.side-btns{display:flex; flex-direction:column; gap:.6rem; position:relative; z-index:2}
 .hint{font-family:var(--f-mono); font-weight:500; font-size:var(--fs-mono); max-width:65%; margin:1.2rem 0 0}
-.maskot-result{position:absolute; right:0; bottom:-.5rem; width:clamp(5.5rem,16vw,10rem)}
+.maskot-result{
+  position:absolute; right:0; bottom:-3.5rem; width:clamp(5.5rem,16vw,10rem);
+  pointer-events:none;   /* klik menembus gambar, tombol di bawahnya tetap bisa dipencet */
+}
 #key-result{margin-top:clamp(1.8rem,4vw,3rem); padding-bottom:1rem}
 #key-result .bubble{width:calc(100% - clamp(6rem,15vw,10rem))}
 .key-btns{display:flex; flex-wrap:wrap; gap:.8rem; margin-top:.6rem; padding-left:clamp(1rem,3vw,2rem)}
 
 /* ---------- footer (full-bleed) ---------- */
 .bottom{
-  height:clamp(5rem,14vw,9rem); margin-top:auto;
-  background:url('../img/footer_ungu.png') center top/100% 100% no-repeat;
+  height:calc(100vw / var(--ftr-ratio)); margin-top:auto;
+  background:url('../img/footer_ungu.png') center/100% 100% no-repeat;
 }
 
 /* ---------- desktop: input & key bersebelahan ---------- */
@@ -162,5 +185,9 @@ h2{
   .key-btns{padding-left:0}
   .hint{max-width:100%}
   .maskot-result{position:static; margin:1rem 0 0 auto}
+    .btn.copied::after{
+    left:50%; top:100%; transform:translateX(-50%);
+    margin:.4rem 0 0;
+  }
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

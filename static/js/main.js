@@ -22,9 +22,9 @@
     a.href = URL.createObjectURL(blob); a.download = name; a.click();
     URL.revokeObjectURL(a.href);
   };
-  const flash = (btn, msg) => {
-    const old = btn.textContent; btn.textContent = msg;
-    setTimeout(() => (btn.textContent = old), 1200);
+  const flash = (btn) => {
+  btn.classList.add('copied');
+  setTimeout(() => btn.classList.remove('copied'), 1200);
   };
   const copy = async (text, btn) => {
     try { await navigator.clipboard.writeText(text); flash(btn, 'Copied'); }
@@ -33,16 +33,25 @@
 
   /* ---------- state UI ---------- */
   function syncUI() {
-    const isFile = el.input.value === 'file';
+    const inputVal = el.input.value;
     const isDecrypt = el.mode.value === 'decrypt';
-    el.boxText.hidden = isFile;
-    el.boxFile.hidden = !isFile;
-    el.boxText.querySelector('.box-label').textContent = isDecrypt ? 'Input Ciphertext' : 'Input Text';
 
-    // Auto Generate hanya untuk Encrypt
+    // Panel input: tersembunyi sampai user memilih Text / File
+    el.boxText.hidden = inputVal !== 'text';
+    el.boxFile.hidden = inputVal !== 'file';
+    el.boxText.querySelector('.box-label').textContent =
+      isDecrypt ? 'Input Ciphertext' : 'Input Text';
+
+    // Auto Generate hanya untuk Encrypt; jika sudah terpilih lalu pindah ke Decrypt,
+    // kembalikan ke placeholder
     el.key.querySelector('option[value="auto"]').disabled = isDecrypt;
-    if (isDecrypt && el.key.value === 'auto') el.key.value = 'manual';
+    if (isDecrypt && el.key.value === 'auto') el.key.value = '';
+
+    // Panel key: hanya muncul untuk Manual Input
     el.boxKey.hidden = el.key.value !== 'manual';
+
+    // Tombol submit: muncul jika ketiga dropdown sudah dipilih
+    el.submit.hidden = !(el.input.value && el.mode.value && el.key.value);
   }
   [el.input, el.mode, el.key].forEach((s) => s.addEventListener('change', syncUI));
   syncUI();
@@ -54,6 +63,9 @@
   el.form.addEventListener('submit', async (e) => {
     e.preventDefault();
     showError('');
+    if (!el.input.value || !el.mode.value || !el.key.value)
+      return showError('Pilih Input, Encrypt/Decrypt, dan Key Option terlebih dahulu.');
+
     const mode = el.mode.value, isFile = el.input.value === 'file', keyMode = el.key.value;
     const file = O.file.get(), text = el.text.value;
 
@@ -77,18 +89,18 @@
   });
 
   function showResult(mode, display, auto) {
-    const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
-    el.resultTitle.textContent = mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
-    el.resultText.value = display;
-    el.hint.textContent = `Copy ${noun} or download it by clicking the 'download' button.`;
-    el.share.hidden = auto;               // desain: Share (key manual/default), Copy (key auto)
-    el.copyResult.hidden = !auto;
-    el.hint.hidden = auto;
-    el.keyResult.hidden = !auto;
-    el.keyOut.value = out.key;
-    el.result.hidden = false;
-    el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
+  el.resultTitle.textContent = mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
+  el.resultText.value = display;
+  el.hint.textContent = `Copy ${noun} or download it by clicking the 'download' button.`;
+  el.share.hidden = true;               // Share tidak dipakai
+  el.copyResult.hidden = false;         // Copy selalu tersedia
+  el.hint.hidden = auto;
+  el.keyResult.hidden = !auto;
+  el.keyOut.value = out.key;
+  el.result.hidden = false;
+  el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
   /* ---------- aksi hasil ---------- */
   el.dlResult.addEventListener('click', () =>
