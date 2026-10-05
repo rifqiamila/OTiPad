@@ -1,5 +1,7 @@
 <section id="result" class="result" hidden>
   <h2 id="result-title">Ciphertext Result:</h2>
+
+  <!-- Hasil asli (tanpa pengelompokan) -->
   <div class="bubble bubble-1">
     <textarea id="result-text" readonly></textarea>
     <div class="side-btns">
@@ -8,6 +10,19 @@
       <button type="button" class="btn" id="btn-copy-result" hidden></button>
     </div>
   </div>
+
+  <!-- Hasil bergrup 5 huruf (hanya untuk input Text) -->
+  <div id="grouped-result" class="grouped-result" hidden>
+    <p class="group-label" id="group-label">Grouped by 5 letters:</p>
+    <div class="bubble bubble-1">
+      <textarea id="grouped-text" readonly></textarea>
+      <div class="side-btns">
+        <button type="button" class="btn" id="btn-dl-grouped"></button>
+        <button type="button" class="btn" id="btn-copy-grouped"></button>
+      </div>
+    </div>
+  </div>
+
   <p class="hint" id="hint">Copy ciphertext or download it by clicking the 'download' button.</p>
   <img class="maskot maskot-result" src="{{ url_for('static', filename='img/maskot.png') }}" alt="">
 

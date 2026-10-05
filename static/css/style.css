@@ -119,7 +119,7 @@ form{
   background-image:url('../img/button_submit.png');
 }
 #btn-share{background-image:url('../img/button_share.png')}
-#btn-copy-result,#btn-copy-key{background-image:url('../img/button_copy.png')}
+#btn-copy-result,#btn-copy-key,#btn-copy-grouped{background-image:url('../img/button_copy.png')}
 .btn:disabled{opacity:.6; cursor:progress}
 .btn{position:relative}
 .btn.copied::after{
@@ -151,6 +151,14 @@ h2{
 .bubble-1 textarea{background:url('../img/box_kuning1.png') center/100% 100% no-repeat}
 .bubble-2 textarea{background:url('../img/box_kuning2.png') center/100% 100% no-repeat}
 .side-btns{display:flex; flex-direction:column; gap:.6rem; position:relative; z-index:2}
+
+/* kotak hasil bergrup 5 huruf */
+.grouped-result{margin-top:clamp(1rem,3vw,1.8rem)}
+.group-label{
+  font-family:var(--f-mono); font-weight:500; font-size:var(--fs-mono);
+  margin:0 0 .5rem;
+}
+
 .hint{font-family:var(--f-mono); font-weight:500; font-size:var(--fs-mono); max-width:65%; margin:1.2rem 0 0}
 .maskot-result{
   position:absolute; right:0; bottom:-3.5rem; width:clamp(5.5rem,16vw,10rem);
@@ -185,7 +193,7 @@ h2{
   .key-btns{padding-left:0}
   .hint{max-width:100%}
   .maskot-result{position:static; margin:1rem 0 0 auto}
-    .btn.copied::after{
+  .btn.copied::after{
     left:50%; top:100%; transform:translateX(-50%);
     margin:.4rem 0 0;
   }

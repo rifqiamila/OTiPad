@@ -10,8 +10,11 @@
     hint: $('#hint'), share: $('#btn-share'), copyResult: $('#btn-copy-result'),
     dlResult: $('#btn-dl-result'), keyResult: $('#key-result'), keyOut: $('#key-out'),
     dlKey: $('#btn-dl-key'), copyKey: $('#btn-copy-key'),
+    // kotak hasil bergrup
+    groupBox: $('#grouped-result'), groupLabel: $('#group-label'), groupText: $('#grouped-text'),
+    dlGroup: $('#btn-dl-grouped'), copyGroup: $('#btn-copy-grouped'),
   };
-  let out = { blob: null, text: '', filename: 'result.txt', key: '' };
+  let out = { blob: null, text: '', grouped: '', filename: 'result.txt', key: '' };
 
   /* ---------- helper bersama ---------- */
   O.errMsg = (d) => d.message || d.reason || d.error || 'Terjadi kesalahan.';
@@ -23,11 +26,11 @@
     URL.revokeObjectURL(a.href);
   };
   const flash = (btn) => {
-  btn.classList.add('copied');
-  setTimeout(() => btn.classList.remove('copied'), 1200);
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1200);
   };
   const copy = async (text, btn) => {
-    try { await navigator.clipboard.writeText(text); flash(btn, 'Copied'); }
+    try { await navigator.clipboard.writeText(text); flash(btn); }
     catch { showError('Gagal menyalin. Salin manual dari kotak teks.'); }
   };
 
@@ -36,21 +39,15 @@
     const inputVal = el.input.value;
     const isDecrypt = el.mode.value === 'decrypt';
 
-    // Panel input: tersembunyi sampai user memilih Text / File
     el.boxText.hidden = inputVal !== 'text';
     el.boxFile.hidden = inputVal !== 'file';
     el.boxText.querySelector('.box-label').textContent =
       isDecrypt ? 'Input Ciphertext' : 'Input Text';
 
-    // Auto Generate hanya untuk Encrypt; jika sudah terpilih lalu pindah ke Decrypt,
-    // kembalikan ke placeholder
     el.key.querySelector('option[value="auto"]').disabled = isDecrypt;
     if (isDecrypt && el.key.value === 'auto') el.key.value = '';
 
-    // Panel key: hanya muncul untuk Manual Input
     el.boxKey.hidden = el.key.value !== 'manual';
-
-    // Tombol submit: muncul jika ketiga dropdown sudah dipilih
     el.submit.hidden = !(el.input.value && el.mode.value && el.key.value);
   }
   [el.input, el.mode, el.key].forEach((s) => s.addEventListener('change', syncUI));
@@ -79,8 +76,11 @@
       const r = isFile ? await O.file.run(mode, file, k) : await O.text.run(mode, text, k);
       if (!r.ok) return showError(r.error);
 
-      out = { blob: r.blob, text: r.text, filename: r.filename, key: k.key };
-      showResult(mode, r.display, keyMode === 'auto');
+      out = {
+        blob: r.blob, text: r.text, grouped: r.grouped || '',
+        filename: r.filename, key: k.key,
+      };
+      showResult(mode, r.display, out.grouped, keyMode === 'auto');
     } catch {
       showError('Tidak bisa terhubung ke server.');
     } finally {
@@ -88,30 +88,43 @@
     }
   });
 
-  function showResult(mode, display, auto) {
-  const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
-  el.resultTitle.textContent = mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
-  el.resultText.value = display;
-  el.hint.textContent = `Copy ${noun} or download it by clicking the 'download' button.`;
-  el.share.hidden = true;               // Share tidak dipakai
-  el.copyResult.hidden = false;         // Copy selalu tersedia
-  el.hint.hidden = auto;
-  el.keyResult.hidden = !auto;
-  el.keyOut.value = out.key;
-  el.result.hidden = false;
-  el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  function showResult(mode, display, grouped, auto) {
+    const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
+    el.resultTitle.textContent = mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
+    el.resultText.value = display;
+
+    // Kotak bergrup: hanya muncul kalau ada hasil bergrup (input Text)
+    el.groupBox.hidden = !grouped;
+    el.groupText.value = grouped || '';
+    el.groupLabel.textContent = `Grouped ${noun} (5 letters per group):`;
+
+    el.hint.textContent = `Copy ${noun} or download it by clicking the 'download' button.`;
+    el.share.hidden = true;
+    el.copyResult.hidden = false;
+    el.hint.hidden = auto;
+    el.keyResult.hidden = !auto;
+    el.keyOut.value = out.key;
+    el.result.hidden = false;
+    el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   /* ---------- aksi hasil ---------- */
   el.dlResult.addEventListener('click', () =>
     save(out.blob || new Blob([out.text], { type: 'text/plain' }), out.filename));
   el.copyResult.addEventListener('click', () => copy(out.text || el.resultText.value, el.copyResult));
+
+  // Aksi untuk hasil bergrup
+  el.dlGroup.addEventListener('click', () =>
+    save(new Blob([out.grouped], { type: 'text/plain' }),
+         out.filename.replace(/\.txt$/i, '_grouped.txt')));
+  el.copyGroup.addEventListener('click', () => copy(out.grouped, el.copyGroup));
+
   el.share.addEventListener('click', async () => {
     const payload = out.blob ? { files: [new File([out.blob], out.filename)] } : { text: out.text };
     if (navigator.canShare && navigator.canShare(payload)) {
       try { await navigator.share(payload); } catch { /* dibatalkan user */ }
     } else if (!out.blob) {
-      copy(out.text, el.share);           // fallback: salin
+      copy(out.text, el.share);
     } else {
       showError('Browser ini belum mendukung berbagi file. Gunakan Download.');
     }

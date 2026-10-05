@@ -2,6 +2,9 @@
 (() => {
   const O = (window.OTP = window.OTP || {});
 
+  // Cadangan kalau server tidak mengirim field `grouped`
+  const group5 = (s) => (s.match(/.{1,5}/g) || []).join(' ');
+
   O.text = {
     async run(mode, text, k) {
       const field = mode === 'encrypt' ? 'plaintext' : 'ciphertext';
@@ -12,9 +15,16 @@
       });
       const d = await res.json();
       if (!d.ok) return { ok: false, error: O.errMsg(d) };
-      // ASUMSI: nama field hasil di JSON
-      const out = d.ciphertext ?? d.plaintext ?? d.result ?? '';
-      return { ok: true, display: out, text: out, blob: null, filename: `${mode}ed.txt` };
+
+      const raw = d.ciphertext ?? d.plaintext ?? '';
+      return {
+        ok: true,
+        display: raw,                       // kotak atas: tanpa grup
+        grouped: d.grouped ?? group5(raw),  // kotak bawah: HELLO WORLD XYZAB
+        text: raw,
+        blob: null,
+        filename: `${mode}ed.txt`,
+      };
     },
   };
 

@@ -159,6 +159,7 @@ def decrypt_text(ciphertext, key_type, key_value):
 
     return _ok(
         plaintext=pt,
+        grouped=group5(pt),
         ciphertext_letter_count=needed,
     )
 
