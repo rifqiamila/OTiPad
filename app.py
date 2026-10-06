@@ -25,7 +25,9 @@ def create_app():
     # Reasonable cap for the request body; the file endpoint also checks
     # explicit byte count, but this stops mega-uploads earlier.
     # 5 MB file + 20 MB key text + slack.
-    app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
+    app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024
+    app.config['MAX_FORM_MEMORY_SIZE'] = 128 * 1024 * 1024
+    app.config['MAX_FORM_PARTS'] = 50_000
 
     app.register_blueprint(main_bp)
     app.register_blueprint(otp_bp)

@@ -28,7 +28,7 @@ def ensure_dirs():
 # ------------------------------------------------------------
 TEMPLATE_KEY_LEN  = 5_000_000       # 5M letters — matches MAX_FILE_SIZE
 MAX_FILE_SIZE     = 5_000_000       # 5 MB decimal (bytes)
-MAX_KEY_FILE_SIZE = 5_000_000       # reject huge uploaded key files    --- NIH
+MAX_KEY_FILE_SIZE = 50_000_000       # reject huge uploaded key files    --- NIH
 MAX_KEY_LENGTH    = 20_000_000      # upper bound for /api/key/generate  --- NIH
 CHUNK_SIZE        = 65536           # lazy read chunk (64 KB)
 
