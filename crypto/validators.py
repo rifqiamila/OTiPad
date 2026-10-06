@@ -5,12 +5,11 @@ Two kinds of validation, intentionally separated:
 
     extract_letters_to_ints(text)
         PERMISSIVE. For plaintext / ciphertext.
-        Silently drops anything that isn't A-Z (per the assignment).
+        Silently drops anything that isn't A-Z.
 
     validate_key_text(raw, allow_trailing_newline=False)
         STRICT. For user-supplied keys.
         Rejects any non-letter character with a descriptive reason.
-        Never silently cleans or auto-fixes.
 
 Return conventions:
     validate_key_text -> (ok: bool, result)
@@ -21,9 +20,7 @@ Return conventions:
 from .otp import ALPHABET, A2I
 
 
-# ------------------------------------------------------------
 # Permissive (text input)
-# ------------------------------------------------------------
 def extract_letters_to_ints(text):
     """
     Return list[int] (0-25) keeping only A-Z / a-z.
@@ -33,9 +30,7 @@ def extract_letters_to_ints(text):
     return [A2I[ch] for ch in text.upper() if ch in ALPHABET]
 
 
-# ------------------------------------------------------------
 # Strict (key input)
-# ------------------------------------------------------------
 def validate_key_text(raw, allow_trailing_newline=False):
     """
     Strictly validate a user-supplied key string.
@@ -45,7 +40,7 @@ def validate_key_text(raw, allow_trailing_newline=False):
       - If `allow_trailing_newline` is True, any number of trailing
         \\r / \\n chars are tolerated (text editors add them).
       - Empty key -> rejected.
-      - Any other character -> rejected, no silent cleaning.
+      - Any other character -> rejected
 
     Returns:
       (True, list[int])   if valid
@@ -58,7 +53,6 @@ def validate_key_text(raw, allow_trailing_newline=False):
     if not s:
         return False, "key is empty."
 
-    # Collect at most 5 distinct bad chars so the message stays short
     bad = []
     seen = set()
     for ch in s:

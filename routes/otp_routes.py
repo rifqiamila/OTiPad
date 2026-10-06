@@ -26,9 +26,7 @@ from services import otp_service as svc
 otp_bp = Blueprint('otp', __name__)
 
 
-# ------------------------------------------------------------
 # Error code -> HTTP status
-# ------------------------------------------------------------
 _STATUS = {
     'EMPTY_INPUT':    400,
     'INVALID_KEY':    400,
@@ -53,9 +51,7 @@ def _read_key_fields():
     return request.form.get('key_type', 'template'), request.form.get('key_value')
 
 
-# ------------------------------------------------------------
 # Text mode
-# ------------------------------------------------------------
 @otp_bp.route('/api/encrypt/text', methods=['POST'])
 def encrypt_text():
     if request.is_json:
@@ -84,9 +80,7 @@ def decrypt_text():
     return jsonify(result), _status_for(result)
 
 
-# ------------------------------------------------------------
 # File mode
-# ------------------------------------------------------------
 @otp_bp.route('/api/encrypt/file', methods=['POST'])
 def encrypt_file():
     upload = request.files.get('file')

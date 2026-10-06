@@ -16,8 +16,6 @@
   };
 
   // Full result state. `keyId`, `downloadUrl`, and `keyFilename`
-  // come from O.key.resolve() and let the download button work
-  // in every mode (auto / manual / template).
   let out = {
     blob: null,
     text: '',
@@ -120,6 +118,7 @@
         keyId: k.keyId || null,
         downloadUrl: k.downloadUrl || null,
         keyFilename: k.filename || null,
+        keyType: k.keyType || 'template',
       };
 
       showResult(mode, r.display, out.grouped, keyMode);
@@ -131,26 +130,37 @@
     }
   });
 
-  /* ---------- result rendering ---------- */
+    /* ---------- result rendering ---------- */
   function showResult(mode, display, grouped, keyMode) {
     const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
-    const auto = keyMode === 'auto';
-    const isPreviewOnly = auto && !out.key; // key textarea has no full key
+
+    // Use out.keyType (stable values from backend) instead of keyMode
+    // (which uses UI names like 'default'). This avoids string mismatches.
+    const isTemplate = out.keyType === 'template';
+    const auto       = out.keyType === 'generated_id';
+    const isManual   = out.keyType === 'text';
+
+    const isPreviewOnly = auto && !out.key;
 
     el.resultTitle.textContent =
       mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
     el.resultText.value = display;
 
-    // Grouped box only for text input
     el.groupBox.hidden = !grouped;
     el.groupText.value = grouped || '';
     el.groupLabel.textContent = `Grouped ${noun} (5 letters per group):`;
 
-    // Hint text depends on the key mode
-    if (auto) {
+    // Hint text per key type
+    if (isTemplate) {
+      el.hint.textContent =
+        'The template key lives on the server. Click Download to save the full 5,000,000-letter file.';
+    } else if (auto) {
       el.hint.textContent = isPreviewOnly
         ? 'The key below is only a preview. Click Download to save the full key file.'
         : 'Copy the key or download it by clicking the download button.';
+    } else if (isManual) {
+      el.hint.textContent =
+        'Your manual key is shown below. Copy or download it to reuse later.';
     } else {
       el.hint.textContent =
         `Copy ${noun} or download it by clicking the 'download' button.`;
@@ -159,14 +169,14 @@
     el.share.hidden = true;
     el.copyResult.hidden = false;
     el.hint.hidden = false;
-    el.keyResult.hidden = !auto;
+    el.keyResult.hidden = false;   // always show the key panel
 
     // Key textarea: full key when small, preview when large, label for template
-    el.keyOut.value = out.key || out.preview || '(key stored on server — click Download)';
+    el.keyOut.value =
+      out.key || out.preview || '(key stored on server — click Download)';
 
-    // Hide Copy key when we don't actually have the full letters locally.
-    // Showing Copy on a preview is misleading — the user would paste a truncated key.
-    el.copyKey.hidden = isPreviewOnly;
+    // Hide Copy only when we don't have the full letters locally
+    el.copyKey.hidden = isPreviewOnly || isTemplate;
 
     el.result.hidden = false;
     el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });

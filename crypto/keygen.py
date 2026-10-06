@@ -13,10 +13,7 @@ import secrets
 from .otp import ALPHABET, A2I
 from config import TEMPLATE_KEY_PATH, TEMPLATE_KEY_LEN, CHUNK_SIZE
 
-
-# ------------------------------------------------------------
 # Random generation (unbiased via rejection sampling)
-# ------------------------------------------------------------
 def fast_random_letters(n):
     """
     Return a string of n cryptographically random A-Z letters.
@@ -25,7 +22,6 @@ def fast_random_letters(n):
     out = []
     while len(out) < n:
         need = n - len(out)
-        # read extra bytes so we almost always finish in one pass
         raw = secrets.token_bytes(min(need * 2 + 1024, 1_000_000))
         for b in raw:
             if b < 234:                     # 234 = 26 * 9  -> no bias
@@ -35,9 +31,7 @@ def fast_random_letters(n):
     return ''.join(out)
 
 
-# ------------------------------------------------------------
 # Template key
-# ------------------------------------------------------------
 def ensure_template_key():
     """
     Create the template key file if it does not exist.
@@ -51,21 +45,8 @@ def ensure_template_key():
         f.write(letters)
     return True
 
-
-# ------------------------------------------------------------
 # Lazy loading
-# ------------------------------------------------------------
 def load_key_from_file(path, needed=None):
-    """
-    Read A-Z letters from `path` and return a list of ints (0-25).
-
-    `needed=None`  -> read the entire file.
-    `needed=N`     -> stop as soon as N letters have been collected.
-
-    Non-letters (spaces, newlines, digits) are silently skipped here
-    because this loader is only used on files WE generated.
-    User-supplied keys must go through crypto.validators instead.
-    """
     key = []
     with open(path, 'r', encoding='ascii', errors='ignore') as f:
         while True:

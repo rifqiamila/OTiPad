@@ -47,9 +47,7 @@ from crypto.validators import extract_letters_to_ints, validate_key_text
 from crypto.file_handler import build_header, parse_header
 
 
-# ============================================================
 # Response helpers
-# ============================================================
 def _ok(**payload):
     return {"ok": True, **payload}
 
@@ -58,15 +56,12 @@ def _err(code, **details):
     return {"ok": False, "error": code, **details}
 
 
-# ============================================================
 # Internal: resolve key source to a list[int]
-# ============================================================
 def _get_key_ints(key_type, key_value, needed):
     """
     Return (ok, key_ints) or (False, (error_code, reason)).
 
-    Lazy-loads from disk when possible so we never read 5 MB for a 3-letter
-    message.
+    Lazy-loads from disk when possible
     """
     if key_type == "template":
         if not os.path.isfile(TEMPLATE_KEY_PATH):
@@ -109,9 +104,7 @@ def _short_key_error(have, need):
     )
 
 
-# ============================================================
 # Text encryption / decryption
-# ============================================================
 def encrypt_text(plaintext, key_type, key_value):
     plain_ints = extract_letters_to_ints(plaintext or "")
     if not plain_ints:
@@ -164,9 +157,7 @@ def decrypt_text(ciphertext, key_type, key_value):
     )
 
 
-# ============================================================
 # File encryption / decryption
-# ============================================================
 def encrypt_file(file_bytes, original_filename, key_type, key_value):
     if not file_bytes:
         return _err("EMPTY_INPUT", message="Uploaded file is empty.")
@@ -252,9 +243,7 @@ def decrypt_file(dat_bytes, key_type, key_value):
     )
 
 
-# ============================================================
 # Key generation and validation
-# ============================================================
 def generate_key(length):
     """Generate and persist a fresh random key. Returns download metadata."""
     if not isinstance(length, int) or length <= 0:
@@ -304,7 +293,7 @@ def check_key_text(text):
 
 
 def get_template_info():
-    """Small metadata block about the template key (no bulk loading)."""
+    """Small metadata block about the template key."""
     if not os.path.isfile(TEMPLATE_KEY_PATH):
         return _err("SERVER_ERROR", message="template key missing.")
 

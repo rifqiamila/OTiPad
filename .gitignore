@@ -48,10 +48,3 @@ storage/outputs/*
 
 # Flask instance folder (created automatically in some setups)
 instance/
-
-# ------------------------------------------------------------
-# Smoke test / check scripts (optional — remove if you want them tracked)
-# ------------------------------------------------------------
-# check_step1.py
-# check_step2.py
-# check_step3.py

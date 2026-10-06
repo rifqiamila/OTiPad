@@ -14,7 +14,7 @@ def index():
 
 @main_bp.route('/api/health', methods=['GET'])
 def health():
-    """Small JSON endpoint so you can sanity-check the server."""
+    """Small JSON endpoint for sanity-checking the server."""
     t = svc.get_template_info()
     return jsonify({
         'ok': True,

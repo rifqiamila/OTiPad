@@ -17,9 +17,7 @@ from services import otp_service as svc
 key_bp = Blueprint('key', __name__)
 
 
-# ------------------------------------------------------------
 # Generate a fresh random key
-# ------------------------------------------------------------
 @key_bp.route('/api/key/generate', methods=['POST'])
 def generate():
     if request.is_json:
@@ -39,9 +37,7 @@ def generate():
     return jsonify(result), status
 
 
-# ------------------------------------------------------------
 # Validate user-typed key
-# ------------------------------------------------------------
 @key_bp.route('/api/key/validate', methods=['POST'])
 def validate():
     if request.is_json:
@@ -55,9 +51,7 @@ def validate():
     return jsonify(result), status
 
 
-# ------------------------------------------------------------
 # Template key download
-# ------------------------------------------------------------
 @key_bp.route('/api/key/template', methods=['GET'])
 def download_template():
     if not TEMPLATE_KEY_PATH:
@@ -71,9 +65,7 @@ def download_template():
     )
 
 
-# ------------------------------------------------------------
 # Generated key download
-# ------------------------------------------------------------
 @key_bp.route('/api/key/download/<key_id>', methods=['GET'])
 def download_generated(key_id):
     path = svc.get_generated_key_path(key_id)

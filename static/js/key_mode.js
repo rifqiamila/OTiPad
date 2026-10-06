@@ -12,11 +12,11 @@
           ok: true,
           keyType: 'text',
           keyValue: v,
-          key: v,             // full letters
+          key: v,
           preview: '',
           keyId: null,
           downloadUrl: null,
-          filename: null,
+          filename: 'otp-key.txt',
         };
       }
 
@@ -71,8 +71,8 @@
         key: 'Template key (5,000,000 letters)',
         preview: '',
         keyId: null,
-        downloadUrl: null,
-        filename: null,
+        downloadUrl: '/api/key/template',
+        filename: 'key_template.txt',  
       };
     },
   };
