@@ -52,8 +52,9 @@ def _bootstrap():
     else:
         print(f"[i] Template key already exists at {TEMPLATE_KEY_PATH}")
 
+_bootstrap()
+app = create_app()
+
 
 if __name__ == '__main__':
-    _bootstrap()
-    app = create_app()
     app.run(host='127.0.0.1', port=5000, debug=True)
