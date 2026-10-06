@@ -15,7 +15,9 @@
     dlGroup: $('#btn-dl-grouped'), copyGroup: $('#btn-copy-grouped'),
   };
 
-  // ← NEW: keyId field tracks the server-side handle for auto-generated keys
+  // Full result state. `keyId`, `downloadUrl`, and `keyFilename`
+  // come from O.key.resolve() and let the download button work
+  // in every mode (auto / manual / template).
   let out = {
     blob: null,
     text: '',
@@ -23,6 +25,8 @@
     filename: 'result.txt',
     key: '',
     keyId: null,
+    downloadUrl: null,
+    keyFilename: null,
   };
 
   /* ---------- helper bersama ---------- */
@@ -44,6 +48,10 @@
   };
 
   const copy = async (text, btn) => {
+    if (!text) {
+      showError('Tidak ada key untuk disalin.');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(text);
       flash(btn);
@@ -62,6 +70,7 @@
     el.boxText.querySelector('.box-label').textContent =
       isDecrypt ? 'Input Ciphertext' : 'Input Text';
 
+    // Auto key is only available for encryption
     el.key.querySelector('option[value="auto"]').disabled = isDecrypt;
     if (isDecrypt && el.key.value === 'auto') el.key.value = '';
 
@@ -100,43 +109,48 @@
         : await O.text.run(mode, text, k);
       if (!r.ok) return showError(r.error);
 
-      // ← NEW: carry keyId from the key resolution into out
+      // Carry every key-related field into out so result actions can use them.
       out = {
         blob: r.blob,
         text: r.text,
         grouped: r.grouped || '',
         filename: r.filename,
-        key: k.key,
+        key: k.key || '',
+        preview: k.preview || '',
         keyId: k.keyId || null,
+        downloadUrl: k.downloadUrl || null,
+        keyFilename: k.filename || null,
       };
 
-      showResult(mode, r.display, out.grouped, keyMode === 'auto');
-    } catch {
+      showResult(mode, r.display, out.grouped, keyMode);
+    } catch (err) {
+      console.error(err);
       showError('Tidak bisa terhubung ke server.');
     } finally {
       el.submit.disabled = false;
     }
   });
 
-  function showResult(mode, display, grouped, auto) {
+  /* ---------- result rendering ---------- */
+  function showResult(mode, display, grouped, keyMode) {
     const noun = mode === 'encrypt' ? 'ciphertext' : 'plaintext';
-    el.resultTitle.textContent = mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
+    const auto = keyMode === 'auto';
+    const isPreviewOnly = auto && !out.key; // key textarea has no full key
+
+    el.resultTitle.textContent =
+      mode === 'encrypt' ? 'Ciphertext Result:' : 'Plaintext Result:';
     el.resultText.value = display;
 
-    // Kotak bergrup: hanya muncul kalau ada hasil bergrup (input Text)
+    // Grouped box only for text input
     el.groupBox.hidden = !grouped;
     el.groupText.value = grouped || '';
     el.groupLabel.textContent = `Grouped ${noun} (5 letters per group):`;
 
-    // ← NEW: hint explains preview vs full key when auto-generated
+    // Hint text depends on the key mode
     if (auto) {
-      if (out.keyId) {
-        el.hint.textContent =
-          'The key below is only a preview. Click Download to save the full key file.';
-      } else {
-        el.hint.textContent =
-          'Copy the key or download it by clicking the download button.';
-      }
+      el.hint.textContent = isPreviewOnly
+        ? 'The key below is only a preview. Click Download to save the full key file.'
+        : 'Copy the key or download it by clicking the download button.';
     } else {
       el.hint.textContent =
         `Copy ${noun} or download it by clicking the 'download' button.`;
@@ -144,18 +158,21 @@
 
     el.share.hidden = true;
     el.copyResult.hidden = false;
-    el.hint.hidden = false;              // ← was `el.hint.hidden = auto` before
+    el.hint.hidden = false;
     el.keyResult.hidden = !auto;
-    el.keyOut.value = out.key;
 
-    // ← NEW: hide "Copy key" when only a preview is available
-    el.copyKey.hidden = !!out.keyId;
+    // Key textarea: full key when small, preview when large, label for template
+    el.keyOut.value = out.key || out.preview || '(key stored on server — click Download)';
+
+    // Hide Copy key when we don't actually have the full letters locally.
+    // Showing Copy on a preview is misleading — the user would paste a truncated key.
+    el.copyKey.hidden = isPreviewOnly;
 
     el.result.hidden = false;
     el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /* ---------- aksi hasil ---------- */
+  /* ---------- result actions ---------- */
   el.dlResult.addEventListener('click', () =>
     save(out.blob || new Blob([out.text], { type: 'text/plain' }), out.filename)
   );
@@ -164,7 +181,6 @@
     copy(out.text || el.resultText.value, el.copyResult)
   );
 
-  // Aksi untuk hasil bergrup
   el.dlGroup.addEventListener('click', () =>
     save(
       new Blob([out.grouped], { type: 'text/plain' }),
@@ -190,8 +206,24 @@
   });
 
   /* ---------- download key ---------- */
-  // ← NEW: fetch the full key from the server when we only have a keyId
   el.dlKey.addEventListener('click', async () => {
+    // Priority 1: server-side key (auto-generated). Fetch the exact file
+    // the backend created — works for any size, avoids the "empty key" bug.
+    if (out.downloadUrl) {
+      try {
+        const res = await fetch(out.downloadUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const name = out.keyFilename
+          || `generated_key_${out.keyId || 'auto'}.txt`;
+        save(blob, name);
+      } catch {
+        showError('Gagal mengunduh key. Coba lagi.');
+      }
+      return;
+    }
+
+    // Priority 2: we only know the id but no URL was provided
     if (out.keyId) {
       try {
         const res = await fetch(`/api/key/download/${out.keyId}`);
@@ -203,11 +235,14 @@
       }
       return;
     }
-    // Manual key → textarea already holds the real thing
+
+    // Priority 3: manual / template — save whatever the textarea holds
+    if (!out.key) {
+      showError('Tidak ada key untuk diunduh.');
+      return;
+    }
     save(new Blob([out.key], { type: 'text/plain' }), 'otp-key.txt');
   });
 
-  el.copyKey.addEventListener('click', () =>
-    copy(out.key, el.copyKey)
-  );
+  el.copyKey.addEventListener('click', () => copy(out.key, el.copyKey));
 })();
