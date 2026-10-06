@@ -29,7 +29,7 @@
 
         // Ambil kunci utuh hanya kalau cukup kecil untuk ditampilkan di layar
         let fullKey = '';
-        if (d.length <= 200000) {
+        if (d.length <= 5000000) {
           const r = await fetch(downloadUrl);
           if (r.ok) fullKey = await r.text();
         }
